@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vital Signs Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1d1f28;
+            color: #e0e0e0;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #f1f1f1;
+            margin: 30px 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+        }
+        #video-container {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #2b2b3d;
+            border-radius: 10px;
+        }
+        #video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        #metrics {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .metric {
+            background-color: #3a3f52;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            margin: 10px;
+            flex: 1 1 200px;
+        }
+        .metric:hover {
+            transform: scale(1.05);
+        }
+        .metric h2 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        .metric h2.good {
+            color: #42f56c;  /* Green for normal values */
+        }
+        .metric h2.bad {
+            color: #ff4c4c;  /* Red for abnormal values */
+        }
+        .metric p {
+            font-size: 1rem;
+            color: #b0b0b0;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vital Signs Monitor</h1>
+    <div id="video-container">
+        <img src="/video_feed" id="video" alt="Live Video Feed">
+    </div>
+    <div id="metrics">
+        <div class="metric">
+            <h2 id="bpm">--</h2>
+            <p>Heart Rate (bpm)</p>
+        </div>
+        <div class="metric">
+            <h2 id="rr">--</h2>
+            <p>Respiratory Rate (breaths/min)</p>
+        </div>
+        <div class="metric">
+            <h2 id="temperature">--</h2>
+            <p>Body Temperature (°C)</p>
+        </div>
+        <!-- Add additional vital signs here if needed -->
+    </div>
+
+    <script>
+        function fetchVitals() {
+            fetch('/vital_signs')
+                .then(response => response.json())
+                .then(data => {
+                    const limits = {
+                        bpm: [60, 100],           // Normal heart rate range
+                        rr: [12, 20],             // Normal respiratory rate range
+                        temperature: [36.0, 37.5] // Normal body temperature range
+                    };
+
+                    for (const [key, value] of Object.entries(data)) {
+                        const element = document.getElementById(key);
+                        const [min, max] = limits[key];
+                        if (value < min || value > max) {
+                            element.className = 'bad';
+                        } else {
+                            element.className = 'good';
+                        }
+                        element.textContent = value.toFixed(2);
+                    }
+                })
+                .catch(error => console.error('Error fetching vital signs:', error));
+        }
+
+        // Fetch vital signs every second
+        setInterval(fetchVitals, 1000);
+    </script>
+</body>
+</html>
